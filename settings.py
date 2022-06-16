@@ -10,7 +10,8 @@ MAX_TRY = 4      #最大尝试次数
 FLAG = 0         #用于标识，是否使用 url_omi() 函数
 
 #初始链接
-URL_START = "http://q.10jqka.com.cn//index/index/board/all/field/zdf/order/desc/page/"
+# URL_START = "http://q.10jqka.com.cn//index/index/board/all/field/zdf/order/desc/page/"
+URL_START = "http://q.10jqka.com.cn/index/index/board/all/field/zdf/order/desc/page/"
 PARAMS = "/ajax/1/"
 
 

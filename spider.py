@@ -1,4 +1,5 @@
 import traceback
+from turtle import ht
 import requests
 from urllib.parse import quote
 from settings import *
@@ -8,9 +9,25 @@ import time
 import random
 import csv
 from datetime import timedelta
-import requests_cache
 from requests_cache import CachedSession
 import os
+from selenium import webdriver
+
+webapi = webdriver.Edge()
+# 全局等待
+webapi.implicitly_wait(10)
+webapi.get(URL_START)
+
+global_cookies = [
+    "Hm_lvt_78c58f01938e4d85eaf619eae71b4ed1=1655366646"
+    "spversion=20130314"
+    "Hm_lpvt_78c58f01938e4d85eaf619eae71b4ed1=1655366803"
+    "historystock=300192%7C*%7C300360"
+    "v=AwkcCSLfjxI2inPm_teXwxyRGD5mVvmwZ0khEat-h40uFSeg86YNWPeaMfs4"
+]
+
+for cookie in global_cookies:
+    webapi.add_cookie({'name': cookie.split("=")[0], 'value': cookie.split("=")[1]})
 
 
 def cache_filter(response: requests.Response):
@@ -52,6 +69,20 @@ class crawl(object):
         self.file = open("ths.csv", 'a', newline='')  # 打开文件
         self.writer = csv.DictWriter(self.file, fieldnames=self.fieldnames)
         self.writer.writeheader()
+        self.basic_headers = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Cookie": "; ".join(global_cookies),
+            "hexin-v": "AwkcCSLfjxI2inPm_teXwxyRGD5mVvmwZ0khEat-h40uFSeg86YNWPeaMfs4",
+            "Host": "q.10jqka.com.cn",
+            "Pragma": "no-cache",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.39",
+            "X-Requested-With": "XMLHttpRequest"
+        }
 
     def proxy_get(self, num_retries=2):
         """
@@ -130,20 +161,7 @@ class crawl(object):
             # {'Accept': 'text/html, */*; q=0.01', 'Accept-Encoding': 'gzip, deflate, sdch', 'Accept-Language': 'zh-CN,zh;q=0.8', 'Connection': 'keep-alive', 'Cookie': 'Hm_lvt_78c58f01938e4d85eaf619eae71b4ed1=1533992361; Hm_lpvt_78c58f01938e4d85eaf619eae71b4ed1=1533992361; user=MDq62sm9SnpsOjpOb25lOjUwMDo0Njk1NDE0MTM6NywxMTExMTExMTExMSw0MDs0NCwxMSw0MDs2LDEsNDA7NSwxLDQwOzEsMSw0MDsyLDEsNDA7MywxLDQwOzUsMSw0MDs4LDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAxLDQwOjo6OjQ1OTU0MTQxMzoxNTMzOTk4MjA5Ojo6MTUzMzk5ODE2MDo4NjQwMDowOjFlYTE2YTBjYTU4MGNmYmJlZWJmZWExODQ3ODRjOTAxNDpkZWZhdWx0XzI6MQ%3D%3D; userid=459541413; u_name=%BA%DA%C9%BDJzl; escapename=%25u9ed1%25u5c71Jzl; ticket=b909a4542156f3781a86b8aaefce3007; v=ApheKMKxdxX9FluRdtjNUdGcac08gfwLXuXQj9KJ5FOGbTKxepHMm671oBoh',
             #  'hexin-v': 'AiDRI3i0b1qEZNNemO_FOZlE8SXqKQQBpg9Y4Jox7pbOH8oZQjnUg_YdKIHp', 'Host': 'q.10jqka.com.cn', 'Referer': 'http://q.10jqka.com.cn/', 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36', 'X-Requested-With': 'XMLHttpRequest'},
 
-            {
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                "Accept-Encoding": "gzip, deflate",
-                "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "Cookie": "Hm_lvt_78c58f01938e4d85eaf619eae71b4ed1=1655366646; spversion=20130314; Hm_lpvt_78c58f01938e4d85eaf619eae71b4ed1=1655366803; historystock=300192%7C*%7C300360; v=AwkcCSLfjxI2inPm_teXwxyRGD5mVvmwZ0khEat-h40uFSeg86YNWPeaMfs4",
-                "hexin-v": "AwkcCSLfjxI2inPm_teXwxyRGD5mVvmwZ0khEat-h40uFSeg86YNWPeaMfs4",
-                "Host": "q.10jqka.com.cn",
-                "Pragma": "no-cache",
-                "Upgrade-Insecure-Requests": "1",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.39",
-                "X-Requested-With": "XMLHttpRequest"
-            }
+            self.basic_headers
         ]
 
         try:
@@ -151,7 +169,9 @@ class crawl(object):
             headers = random.choice(headers_list)
             # r = requests.get(url, headers=headers, proxies=proxies, timeout=4)
             r = session.get(url, headers=headers, proxies=proxies, timeout=4)
-        except:
+        except KeyboardInterrupt as e:
+            raise e
+        except Exception as e:
             if num_retries > 0:
                 print("重新下载")
                 self.proxy_con = 0  # 更换代理
@@ -176,7 +196,9 @@ class crawl(object):
             print("执行到了获取模块")
 
             for url in url_list:
-                html = self.downloader(url)
+                # html = self.downloader(url)
+                webapi.get(url)
+                html = webapi.execute_script("return document.documentElement.outerHTML")
                 # 打印提示信息
                 print('URL is:', url)
                 items = {}  # 建立一个空字典，用于信息存储
@@ -200,6 +222,27 @@ class crawl(object):
                 except Exception as e:
                     print(f"解析失败: {e}")
                     print(html)
+                    # # 尝试用 Edge 打开，更新 Cookie
+                    # webapi.delete_all_cookies()  # 删除selenium侧的所有cookies
+                    # for k, v in session.cookies.items():  # 获取requests侧的cookies
+                    #     print(f"will add cookie({k}: {v})")
+                    #     # 向selenium侧传入以requests侧cookies的name为键value为值的字典
+                    #     webapi.add_cookie({'name': k, 'value': v})
+                    # webapi.get(url)
+                    # html = webapi.execute_script(
+                    #     "return document.documentElement.outerHTML")
+                    # print(f"html on edge: {html}")
+                    # sel_cookies = webapi.get_cookies()  # 获取selenium侧的cookies
+                    # print(sel_cookies)
+                    # jar = requests.cookies.RequestsCookieJar()  # 先构建RequestsCookieJar对象
+                    # for i in sel_cookies:
+                    #     # 将selenium侧获取的完整cookies的每一个cookie名称和值传入RequestsCookieJar对象
+                    #     # domain和path为可选参数，主要是当出现同名不同作用域的cookie时，为了防止后面同名的cookie将前者覆盖而添加的
+                    #     jar.set(i['name'], i['value'],
+                    #             domain=i['domain'], path=i['path'])
+                    # session.cookies.update(jar)
+                    # html = self.downloader(url)
+                    # print(f"html after update: {html}")
                     raise e
                     # 解析失败，则将代理换掉
                     self.proxy_con = 0
@@ -215,4 +258,8 @@ class crawl(object):
 
 if __name__ == '__main__':
     app = crawl()
-    app.items_return()  # 打印最后的结果
+    try:
+        app.items_return()  # 打印最后的结果
+    except Exception as e:
+        # webapi.close()
+        raise e
