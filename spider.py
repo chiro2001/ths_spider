@@ -7,6 +7,23 @@ import sys
 import time
 import random
 import csv
+from datetime import timedelta
+import requests_cache
+from requests_cache import CachedSession
+import os
+
+session = CachedSession(
+    os.path.join(os.path.join(os.environ.get('userprofile', '~'), '.requests_cache'), 'ths_cache'),
+    use_cache_dir=True,  # Save files in the default user cache dir
+    cache_control=False,  # Use Cache-Control headers for expiration, if available
+    expire_after=timedelta(days=3),  # Otherwise expire responses after one day
+    allowable_methods=['GET', 'POST'],
+    # Cache POST requests to avoid sending the same data twice
+    allowable_codes=[200, 400],  # Cache 400 responses as a solemn reminder of your failures
+    ignored_parameters=['api_key', '.pdf'],  # Don't match this param or save it in the cache
+    match_headers=False,  # Match all request headers
+    stale_if_error=True  # In case of request errors, use stale cache data if possible)
+)
 
 
 class crawl(object):
@@ -109,11 +126,13 @@ class crawl(object):
                 "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "Cookie": "v=A2N2OwxRBeD8bsnUZ7rNEao38qwIWPcLMew7xJXAv0I51I1SHSiH6kG8yzOm",
+                "Cookie": "Hm_lvt_78c58f01938e4d85eaf619eae71b4ed1=1655366646; spversion=20130314; Hm_lpvt_78c58f01938e4d85eaf619eae71b4ed1=1655366803; historystock=300192%7C*%7C300360; v=AwkcCSLfjxI2inPm_teXwxyRGD5mVvmwZ0khEat-h40uFSeg86YNWPeaMfs4",
+                "hexin-v": "AwkcCSLfjxI2inPm_teXwxyRGD5mVvmwZ0khEat-h40uFSeg86YNWPeaMfs4",
                 "Host": "q.10jqka.com.cn",
                 "Pragma": "no-cache",
                 "Upgrade-Insecure-Requests": "1",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.39",
+                "X-Requested-With": "XMLHttpRequest"
             }
         ]
 
@@ -151,10 +170,7 @@ class crawl(object):
                 print('URL is:', url)
                 items = {}  # 建立一个空字典，用于信息存储
                 try:
-                    # from: http://q.10jqka.com.cn//index/index/board/all/field/zdf/order/desc/page/1/ajax/1/
-                    # to:   http://q.10jqka.com.cn//index/index/board/all/field/zdf/order/desc/page/1/ajax/1/
                     soup = BeautifulSoup(html, 'lxml')
-                    print(f"get html: {soup.prettify()}")
                     for tr in soup.find('tbody').find_all('tr'):
                         td_list = tr.find_all('td')
                         items['代码'] = td_list[1].string
@@ -172,14 +188,15 @@ class crawl(object):
                     raise e
                 except Exception as e:
                     print(f"解析失败: {e}")
-                    traceback.print_exception()
+                    print(html)
+                    raise e
                     # 解析失败，则将代理换掉
                     self.proxy_con = 0
-                    # print(html)
                     if not self.PAGE_TRACK in self.PAGE_LIST:
                         self.PAGE_LIST.append(self.PAGE_TRACK)
                     else:
                         count += 1
+                time.sleep(5)
 
             if count == 2:
                 break
