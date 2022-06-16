@@ -14,10 +14,7 @@ from requests_cache import CachedSession
 import os
 from selenium import webdriver
 
-webapi = webdriver.Edge()
-# 全局等待
-webapi.implicitly_wait(10)
-webapi.get(URL_START)
+webapi = None
 
 global_cookies = [
     "Hm_lvt_78c58f01938e4d85eaf619eae71b4ed1=1655366646"
@@ -27,8 +24,21 @@ global_cookies = [
     "v=AwkcCSLfjxI2inPm_teXwxyRGD5mVvmwZ0khEat-h40uFSeg86YNWPeaMfs4"
 ]
 
-for cookie in global_cookies:
-    webapi.add_cookie({'name': cookie.split("=")[0], 'value': cookie.split("=")[1]})
+
+def reset_webapi():
+    global webapi
+    if webapi is not None:
+        webapi.close()
+    webapi = webdriver.Edge()
+    # 全局等待
+    webapi.implicitly_wait(10)
+    webapi.get(URL_START)
+    for cookie in global_cookies:
+        webapi.add_cookie({'name': cookie.split(
+            "=")[0], 'value': cookie.split("=")[1]})
+
+
+reset_webapi()
 
 
 def cache_filter(response: requests.Response):
@@ -91,10 +101,10 @@ class crawl(object):
         #代理获取模块
 
         """
-        return {
-            "http": "http://router.chiro.work:7890",
-            "https": "http://router.chiro.work:7890"
-        }
+        # return {
+        #     "http": "http://router.chiro.work:7890",
+        #     "https": "http://router.chiro.work:7890"
+        # }
         try:
             r_proxy = requests.get(self.PROXY_POOL_API, timeout=5)
             proxy_text = r_proxy.text  # 指定代理
@@ -203,8 +213,10 @@ class crawl(object):
 
             for url in url_list:
                 # html = self.downloader(url)
+                reset_webapi()
                 webapi.get(url)
-                html = webapi.execute_script("return document.documentElement.outerHTML")
+                html = webapi.execute_script(
+                    "return document.documentElement.outerHTML")
                 # 打印提示信息
                 print('URL is:', url)
                 items = {}  # 建立一个空字典，用于信息存储
