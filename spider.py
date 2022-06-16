@@ -25,17 +25,23 @@ global_cookies = [
 ]
 
 
-def reset_webapi():
+def reset_webapi(proxy=None):
     global webapi
     if webapi is not None:
         webapi.close()
-    webapi = webdriver.Edge()
+    # 进入浏览器设置
+    # webapi = webdriver.Edge()
+    chrome_options = webdriver.ChromeOptions()
+    if proxy is not None:
+        chrome_options.add_argument('--proxy-server=%s' % proxy)
+    webapi = webdriver.Chrome(chrome_options=chrome_options)
     # 全局等待
     webapi.implicitly_wait(10)
     webapi.get(URL_START)
     for cookie in global_cookies:
-        webapi.add_cookie({'name': cookie.split(
-            "=")[0], 'value': cookie.split("=")[1]})
+        webapi.add_cookie(
+            {'name': cookie.split("=")[0], 'value': cookie.split("=")[1]}
+        )
 
 
 reset_webapi()
@@ -213,7 +219,12 @@ class crawl(object):
 
             for url in url_list:
                 # html = self.downloader(url)
-                reset_webapi()
+                if self.proxy_con == 0:
+                    proxies = self.proxy_get()  # 获取代理
+                else:
+                    proxies = self.proxy_save  # 继续使用代理
+                self.proxy_save = proxies  # 更换代理值
+                reset_webapi(proxy=proxies['http'])
                 webapi.get(url)
                 html = webapi.execute_script(
                     "return document.documentElement.outerHTML")
