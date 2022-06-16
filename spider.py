@@ -12,16 +12,26 @@ import requests_cache
 from requests_cache import CachedSession
 import os
 
+
+def cache_filter(response: requests.Response):
+    text = response.text
+    return "window.location.href=" not in text
+
+
 session = CachedSession(
-    os.path.join(os.path.join(os.environ.get('userprofile', '~'), '.requests_cache'), 'ths_cache'),
+    os.path.join(os.path.join(os.environ.get('userprofile', '~'),
+                 '.requests_cache'), 'ths_cache'),
     use_cache_dir=True,  # Save files in the default user cache dir
     cache_control=False,  # Use Cache-Control headers for expiration, if available
     expire_after=timedelta(days=3),  # Otherwise expire responses after one day
     allowable_methods=['GET', 'POST'],
     # Cache POST requests to avoid sending the same data twice
-    allowable_codes=[200, 400],  # Cache 400 responses as a solemn reminder of your failures
-    ignored_parameters=['api_key', '.pdf'],  # Don't match this param or save it in the cache
+    # Cache 400 responses as a solemn reminder of your failures
+    allowable_codes=[200, 400],
+    # Don't match this param or save it in the cache
+    ignored_parameters=['api_key', '.pdf'],
     match_headers=False,  # Match all request headers
+    filter_fn=cache_filter,
     stale_if_error=True  # In case of request errors, use stale cache data if possible)
 )
 
@@ -139,7 +149,8 @@ class crawl(object):
         try:
             time.sleep(random.random()*5)  # 设置延时
             headers = random.choice(headers_list)
-            r = requests.get(url, headers=headers, proxies=proxies, timeout=4)
+            # r = requests.get(url, headers=headers, proxies=proxies, timeout=4)
+            r = session.get(url, headers=headers, proxies=proxies, timeout=4)
         except:
             if num_retries > 0:
                 print("重新下载")
